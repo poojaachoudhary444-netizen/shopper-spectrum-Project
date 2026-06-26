@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 st.set_page_config(page_title="🛒 Shopper Spectrum", page_icon="🛒", layout="wide")
 
@@ -14,14 +10,13 @@ def load_models():
     with open('models/kmeans_model.pkl','rb') as f: kmeans = pickle.load(f)
     with open('models/scaler.pkl','rb') as f: scaler = pickle.load(f)
     with open('models/cluster_labels.pkl','rb') as f: cluster_labels = pickle.load(f)
-    with open('models/product_similarity.pkl','rb') as f: product_sim_df = pickle.load(f)
+    with open('models/product_similarity_small.pkl','rb') as f: product_sim_df = pickle.load(f)
     with open('models/product_list.pkl','rb') as f: product_list = pickle.load(f)
     return kmeans, scaler, cluster_labels, product_sim_df, product_list
 
 kmeans, scaler, cluster_labels, product_sim_df, product_list = load_models()
 
 # Sidebar
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3081/3081559.png", width=80)
 st.sidebar.title("🛒 Shopper Spectrum")
 st.sidebar.caption("E-Commerce Analytics")
 st.sidebar.markdown("---")
@@ -35,7 +30,7 @@ if module == "🏠 Home":
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Customers", "4,338")
-    col2.metric("Total Products", "3,866")
+    col2.metric("Total Products", "500+")
     col3.metric("Silhouette Score", "0.6162")
     col4.metric("Segments", "4")
 
@@ -44,13 +39,13 @@ if module == "🏠 Home":
     with col1:
         st.info("""
         ### 🎯 Product Recommendations
-        Enter a **product name** → get **5 similar product recommendations**  
+        Enter a **product name** → get **5 similar product recommendations**
         using **Item-based Collaborative Filtering** (Cosine Similarity).
         """)
     with col2:
         st.success("""
         ### 👥 Customer Segmentation
-        Enter **Recency, Frequency, Monetary** values → predict **customer segment**  
+        Enter **Recency, Frequency, Monetary** values → predict **customer segment**
         using **KMeans Clustering** (K=4) on RFM features.
         """)
 
@@ -68,7 +63,7 @@ if module == "🏠 Home":
 # ── PRODUCT RECOMMENDATIONS ───────────────────────────────────
 elif module == "🎯 Product Recommendations":
     st.title("🎯 Product Recommendation System")
-    st.caption("Item-based Collaborative Filtering · Cosine Similarity")
+    st.caption("Item-based Collaborative Filtering · Cosine Similarity · Top 500 Products")
     st.markdown("---")
 
     col1, col2 = st.columns([3,1])
@@ -166,18 +161,17 @@ elif module == "👥 Customer Segmentation":
         c2.metric("🔁 Frequency", f"{frequency} orders")
         c3.metric("💰 Monetary", f"£{monetary:,.2f}")
 
-        # Radar-style bar comparison
-        st.markdown("### 📊 Your Customer Profile vs Segment Averages")
+        st.markdown("### 📊 Your Profile vs Segment Averages")
         seg_avg = {
-            'High-Value': {'Recency': 7, 'Frequency': 82, 'Monetary': 127187},
-            'Regular':    {'Recency': 15, 'Frequency': 22, 'Monetary': 12690},
-            'Occasional': {'Recency': 43, 'Frequency': 3, 'Monetary': 1353},
-            'At-Risk':    {'Recency': 248, 'Frequency': 1, 'Monetary': 478},
+            'High-Value': {'Recency': 7,   'Frequency': 82, 'Monetary': 127187},
+            'Regular':    {'Recency': 15,  'Frequency': 22, 'Monetary': 12690},
+            'Occasional': {'Recency': 43,  'Frequency': 3,  'Monetary': 1353},
+            'At-Risk':    {'Recency': 248, 'Frequency': 1,  'Monetary': 478},
         }
         avg = seg_avg.get(segment, seg_avg['Occasional'])
         compare_df = pd.DataFrame({
-            'Metric': ['Recency (days)', 'Frequency', 'Monetary (£)'],
-            'Your Value': [recency, frequency, monetary],
-            'Segment Avg': [avg['Recency'], avg['Frequency'], avg['Monetary']]
+            'Metric':        ['Recency (days)', 'Frequency', 'Monetary (£)'],
+            'Your Value':    [recency, frequency, monetary],
+            'Segment Avg':   [avg['Recency'], avg['Frequency'], avg['Monetary']]
         })
         st.dataframe(compare_df, use_container_width=True)
